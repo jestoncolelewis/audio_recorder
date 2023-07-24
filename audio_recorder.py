@@ -13,17 +13,26 @@ from tkinter import (
     Tk,
     OptionMenu
 )
+from threading import Event
+
+# Global Variables
+chunk = 1024
+bitrate = pyaudio.paInt16
+channels = 1
+samplerate = 44100
+filename = "sample.wav"
+event_obj = Event()
+p = pyaudio.PyAudio()
 
 def start():
-    chunk = 1024
-    bitrate = pyaudio.paInt16
-    channels = 1
-    samplerate = 44100
-    seconds = 3
-    filename = "sample.wav"
+    event_obj.set()
+    
 
-    p = pyaudio.PyAudio()
+def stop():
+    event_obj.clear()
 
+stop()
+if event_obj:
     print("Recording")
 
     stream = p.open(
@@ -36,7 +45,7 @@ def start():
 
     frames = []
 
-    for i in range(0, int(samplerate / chunk * seconds)):
+    while event_obj:
         data = stream.read(chunk)
         frames.append(data)
 
@@ -65,5 +74,6 @@ var = StringVar()
 vals = ["obj1", "obj2", "obj3"]
 options = OptionMenu(mainframe, variable=var, value="test").grid(column=0, row=0)
 ttk.Button(mainframe, text="START", command=start).grid(column=0, row=1)
+ttk.Button(mainframe, text="STOP", command=stop).grid(column=0, row=2)
 
 window.mainloop()
