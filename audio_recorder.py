@@ -21,46 +21,45 @@ bitrate = pyaudio.paInt16
 channels = 1
 samplerate = 44100
 filename = "sample.wav"
-event_obj = Event()
+record = bool
 p = pyaudio.PyAudio()
 
 def start():
-    event_obj.set()
+    record = True
+
+    if record == True:
+        print("Recording")
+
+        stream = p.open(
+            format=bitrate,
+            channels=channels,
+            rate=samplerate,
+            frames_per_buffer=chunk,
+            input=True
+        )
+
+        frames = []
+
+        while record == True:
+            data = stream.read(chunk)
+            frames.append(data)
+
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+
+        print("Finished")
+
+        wf = wave.open(filename, "wb")
+        wf.setnchannels(channels)
+        wf.setsampwidth(p.get_sample_size(bitrate))
+        wf.setframerate(samplerate)
+        wf.writeframes(b''.join(frames))
+        wf.close()
     
 
 def stop():
-    event_obj.clear()
-
-stop()
-if event_obj:
-    print("Recording")
-
-    stream = p.open(
-        format=bitrate,
-        channels=channels,
-        rate=samplerate,
-        frames_per_buffer=chunk,
-        input=True
-    )
-
-    frames = []
-
-    while event_obj:
-        data = stream.read(chunk)
-        frames.append(data)
-
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
-
-    print("Finished")
-
-    wf = wave.open(filename, "wb")
-    wf.setnchannels(channels)
-    wf.setsampwidth(p.get_sample_size(bitrate))
-    wf.setframerate(samplerate)
-    wf.writeframes(b''.join(frames))
-    wf.close()
+    record = False
 
 # UI
 window = Tk()
